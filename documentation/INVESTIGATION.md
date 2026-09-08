@@ -43,7 +43,6 @@ In a perfect world, music streaming platforms would still track what you like, b
 
 ## Sources
 - https://codegolf.stackexchange.com/questions/198094/spotify-shuffle-music-playlist-shuffle-algorithm
-- https://www.youtube.com/watch?v=wbDIIQ2ExPw&t=210s
 - https://www.youtube.com/watch?v=MOqo1vS3lD4&t=211s (check out this creators web app for a true random shuffle on the playlists)
 - https://www.youtube.com/watch?v=OdLyKETk5o0
 - https://engineering.atspotify.com/2014/02/how-to-shuffle-songs (the article they released about the 2014 fix is no longer available but was used in the implementation of codegolf)

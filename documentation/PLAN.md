@@ -9,3 +9,5 @@ I'll use the spotify web API for the user to authenticate and link their account
 Now for the recommendations. To find smaller yet good artists I'll make a scraper bot that will research music magazines and forums to find some niche tracks. I also have to figure out how to store this data.
 
 After I have both this things I'll make a sorting algorithm and choose the top tracks from the scraper based on how similar they are to the user's weekly activity.
+
+NME FADER KERRANG! MIXMAG THEQUIETUS BANDCAMP 
