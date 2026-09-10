@@ -1,5 +1,7 @@
 import time
 
+import feedparser
+
 from config import MAX_ENTRIES_PER_FEED, REQUEST_DELAY_SECONDS
 from db import get_conn, get_feed_state, insert_candidate, set_feed_state
 from extract import guess_artist_track
