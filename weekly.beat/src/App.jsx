@@ -2,7 +2,7 @@ import { useState } from 'react'
 import SpotifyCallback from './auth/SpotifyCallback'
 import './App.css'
 import HomePage from './HomePage'
-import { BrowserRouter as Router, Route, Routes} from 'react-router-dom'
+import { BrowserRouter as Router, Route, Routes} from 'react-router'
 
 function App() {
   const [count, setCount] = useState(0)

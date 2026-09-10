@@ -1,4 +1,8 @@
+import { useSpotifyAuth } from './auth/useSpotifyAuth'
+
 const HomePage = () => {
+  const { loggedIn, login, logout } = useSpotifyAuth()
+
   return (
     <main className="min-h-screen min-w-screen bg-gray-900 text-white flex flex-col items-center justify-center text-center relative overflow-hidden">
 

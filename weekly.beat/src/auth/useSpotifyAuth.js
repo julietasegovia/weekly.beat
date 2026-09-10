@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
-import { isLoggedIN, logout as clearTokens, redirectToSpotify, redirectToSpotifyLogin } from "./spotifyAuth"
+import { useCallback, useEffect, useState } from "react"
+import { IsLoggedIn, logout as clearTokens, redirectToSpotifyLogin } from "./spotifyAuth"
 
 export function useSpotifyAuth() {
-    const [loggedIn, setLoggedIn] = useState(isLoggedIn())
+    const [loggedIn, setLoggedIn] = useState(IsLoggedIn())
 
-    useEffect(() =>{
-        const onStorage = () => setLoggedIn(isLoggedIn())
+    useEffect(() => {
+        const onStorage = () => setLoggedIn(IsLoggedIn())
         window.addEventListener("storage", onStorage)
         return () => window.removeEventListener("storage", onStorage)
     }, [])
@@ -14,10 +14,10 @@ export function useSpotifyAuth() {
         redirectToSpotifyLogin()
     }, [])
 
-    const logout = useCallback(()=> {
+    const logout = useCallback(() => {
         clearTokens()
         setLoggedIn(false)
     }, [])
 
-    return { loggedIn, login, logout}
+    return { loggedIn, login, logout }
 }
