@@ -1,5 +1,12 @@
 SOURCES = [
     {
+        "https://www.nme.com/",
+        "https://www.thefader.com/",
+        "https://www.kerrang.com/",
+        "https://www.mixmag.net/",
+        "https://www.mixmaglatam.com/",
+        "https://thequietus.com/"
+        "https://bandcamp.com/"
 
     }
 ]
