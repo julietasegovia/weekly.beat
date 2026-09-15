@@ -1,9 +1,9 @@
 import argparse
 import sys
 
-from config import SOURCES
+from config import TAGS
 from db import get_conn, count_new, init_db
-from scraper import scrape_all, scrape_source
+from scraper import scrape_all, scrape_tag
 
 
 def print_result(result):
@@ -13,15 +13,25 @@ def print_result(result):
         print(f"[{result.source}] ERROR - {result.error}")
     else:
         print(
-            f"[{result.source}] ok - saw {result.entries_seen} entries, "
+            f"[{result.source}] ok - saw {result.entries_seen} releases, "
             f"{result.new_candidates} new candidates"
         )
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Scrape music blog RSS feeds for niche tracks.")
-    parser.add_argument("--once", metavar="SOURCE_NAME", help="scrape only this source")
-    parser.add_argument("--summary", action="store_true", help="print DB summary and exit")
+    parser = argparse.ArgumentParser(
+        description="Scrape Bandcamp Discover for niche track candidates."
+    )
+    parser.add_argument(
+        "--tag",
+        metavar="TAG",
+        help="scrape only this Bandcamp tag (e.g. electronic, ambient)",
+    )
+    parser.add_argument(
+        "--summary",
+        action="store_true",
+        help="print DB summary and exit",
+    )
     args = parser.parse_args()
 
     init_db()
@@ -31,14 +41,15 @@ def main():
             print(f"New (unmatched) candidates in DB: {count_new(conn)}")
         return
 
-    if args.once:
-        matches = [s for s in SOURCES if s["name"] == args.once]
-        if not matches:
-            print(f"No source named '{args.once}' in config.py", file=sys.stderr)
-            sys.exit(1)
-        print_result(scrape_source(matches[0]))
+    if args.tag:
+        if TAGS and args.tag not in TAGS:
+            print(
+                f"Note: '{args.tag}' is not in config.TAGS; scraping anyway.",
+                file=sys.stderr,
+            )
+        print_result(scrape_tag(args.tag))
     else:
-        for result in scrape_all(SOURCES):
+        for result in scrape_all():
             print_result(result)
 
     with get_conn() as conn:

@@ -10,4 +10,8 @@ Now for the recommendations. To find smaller yet good artists I'll make a scrape
 
 After I have both this things I'll make a sorting algorithm and choose the top tracks from the scraper based on how similar they are to the user's weekly activity.
 
-NME FADER KERRANG! MIXMAG THEQUIETUS BANDCAMP 
+## Spotify Linking
+
+Thankfully, a Spotify API already exists for this that'll make things easy for login. Thanks to this API I don't have to create a new login system as the user just has to use their spotify account.
+
+The login button on the landing page opens a spotify login page, then it redirects the user to a configured callback address (all on localhost for now). Then the API call happens and my app and spotify exchange the verification code for an access token (check `/src/auth/`). After the exchange the tokens are stored in the browser, so unless the user deletes cache, they shouldn't have to login with Spotify again.

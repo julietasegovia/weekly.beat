@@ -1,22 +1,24 @@
-SOURCES = [
-    {
-        "https://www.nme.com/",
-        "https://www.thefader.com/",
-        "https://www.kerrang.com/",
-        "https://www.mixmag.net/",
-        "https://www.mixmaglatam.com/",
-        "https://thequietus.com/"
-        "https://bandcamp.com/"
-
-    }
+TAGS = [
+    "electronic",
+    "experimental",
+    "hip-hop-rap",
+    "indie",
+    "metal",
+    "punk",
+    "rock",
+    "ambient",
 ]
 
-USER_AGENT = "weekly.bot/0.1"
+SLICE = "new"
 
-REQUEST_DELAY_SECONDS = 3
+RESULTS_PER_TAG = 40
 
-REQUEST_TIMEOUT_SECONDS = 15
+USER_AGENT = "weekly.bot/0.1 (+https://github.com/weekly.beat; bandcamp discover)"
+
+REQUEST_DELAY_SECONDS = 2
+
+REQUEST_TIMEOUT_SECONDS = 20
 
 DB_PATH = "candidates.db"
 
-MAX_ENTRIES_PER_FEED = 30
+DISCOVER_URL = "https://bandcamp.com/api/discover/1/discover_web"

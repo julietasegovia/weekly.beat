@@ -3,6 +3,7 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 
 from config import DB_PATH
+
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS candidates (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -16,7 +17,7 @@ CREATE TABLE IF NOT EXISTS candidates (
     status TEXT NOT NULL DEFAULT 'new', -- new | matched | rejected
     scraped_at TEXT NOT NULL,
     UNIQUE(source, guid)
-    );
+);
 
 CREATE TABLE IF NOT EXISTS feed_state (
     source TEXT PRIMARY KEY,
@@ -25,6 +26,7 @@ CREATE TABLE IF NOT EXISTS feed_state (
     last_run_at TEXT
 );
 """
+
 
 @contextmanager
 def get_conn():
@@ -65,7 +67,7 @@ def insert_candidate(conn, source, guid, link, raw_title, artist_guess, track_gu
         )
         return True
     except sqlite3.IntegrityError:
-        return False  # already have this one
+        return False
 
 
 def get_feed_state(conn, source):

@@ -4,7 +4,6 @@ import { useSpotifyAuth } from './auth/useSpotifyAuth'
 const HomePage = () => {
   const { loggedIn, login, logout } = useSpotifyAuth()
 
-  // Countdown state
   const [timeLeft, setTimeLeft] = useState({
     days: 0, hours: 0, minutes: 0, seconds: 0,
   })
@@ -34,11 +33,11 @@ const HomePage = () => {
   }, [loggedIn])
 
   const tracks = [
-    { title: "Neon Horizon", artist: "Aurora Waves", cover: "from-emerald-400 to-emerald-700" },
-    { title: "Midnight Static", artist: "The Velvet Echo", cover: "from-pink-400 to-pink-700" },
-    { title: "Paper Planes", artist: "Luna & The Tide", cover: "from-emerald-300 to-emerald-600" },
-    { title: "Glass Gardens", artist: "Solar Bloom", cover: "from-pink-300 to-pink-600" },
-    { title: "Slow Motion City", artist: "Northern Drift", cover: "from-emerald-500 to-emerald-800" },
+    { title: "song 1", artist: "artist 1", cover: ""},
+    { title: "song 2", artist: "artist 2", cover: ""},
+    { title: "song 3", artist: "artist 3", cover: ""},
+    { title: "song 4", artist: "artist 4", cover: ""},
+    { title: "song 5", artist: "artist 5", cover: ""},
   ]
 
   return (
@@ -84,8 +83,8 @@ const HomePage = () => {
 
         {loggedIn && (
           <>
-          <div className="flex flex-col items-center text-center space-y-3 mt-5 mb-5">
-              <div className="px-5 py-1.5 rounded-full bg-white/5 backdrop-blur-sm border border-white/10 text-xs text-gray-300 tracking-widest uppercase flex items-center gap-2">
+          <div className="flex flex-col items-center text-center space-y-3 mt-10 mb-4">
+              <div className="text-xs text-emerald-400 tracking-widest uppercase flex opacity-70 items-center gap-2">
                 This Week's Picks
               </div>
             </div>
@@ -94,7 +93,7 @@ const HomePage = () => {
               {tracks.map((track, i) => (
                 <div
                   key={i}
-                  className="group flex items-center gap-4 p-4 rounded-2xl bg-white/[0.03] backdrop-blur-sm border border-white/10 hover:bg-white/[0.06] hover:border-white/20 transition-all duration-300 cursor-pointer"
+                  className="group flex items-center gap-4 p-4 rounded-3xl bg-white/[0.03] backdrop-blur-sm transition-all duration-300 cursor-pointer"
                 >
 
                   <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${track.cover} flex-shrink-0 shadow-lg relative overflow-hidden`}>
@@ -117,9 +116,8 @@ const HomePage = () => {
               ))}
             </div>
 
-            <div className="w-full flex flex-col items-center space-y-5">
-              <div className="flex items-center gap-3 text-xs text-gray-400 tracking-widest uppercase">
-                <span className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-pulse"></span>
+            <div className="w-full flex flex-col items-center">
+              <div className="flex items-center gap-3 text-xs text-pink-300 tracking-widest uppercase opacity-70">
                 Next drop in
               </div>
 
@@ -132,8 +130,8 @@ const HomePage = () => {
                 ].map((unit, i) => (
                   <div key={i} className="flex items-center gap-3">
                     <div className="flex flex-col items-center">
-                      <div className="w-16 h-16 rounded-2xl bg-white/[0.03] backdrop-blur-sm border border-white/10 flex items-center justify-center">
-                        <span className="text-2xl font-bold font-mono bg-gradient-to-br from-white to-gray-400 bg-clip-text text-transparent">
+                      <div className="w-16 h-16 backdrop-blur-sm flex items-center justify-center">
+                        <span className="text-4xl font-bold font-mono bg-gradient-to-br from-pink-300 to-emerald-400 bg-clip-text text-transparent opacity-70">
                           {String(unit.value).padStart(2, "0")}
                         </span>
                       </div>
