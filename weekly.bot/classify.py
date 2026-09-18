@@ -2,6 +2,7 @@ import json
 import os
 import re
 import time
+from urllib.parse import urlparse
 
 import requests
 
@@ -38,7 +39,7 @@ _HTML_TAG = re.compile(r"<[^>]+>")
 class ClassifyStats:
     def __init__(self):
         self.seen = 0
-        self.form_tags = 0
+        self.from_tags = 0
         self.from_artist = 0
         self.from_musicbrainz = 0
         self.unresolved = 0
@@ -93,10 +94,10 @@ def fetch_release_tags(url: str | None) -> list[str]:
             tags = [t for t in json.loads("[" + match.group(1) + "]") if isinstance(t, str)]
         except ValueError:
             tags = []
-        if not tags:
-            tags = [_HTML_TAG.sub("", m) for m in _TAG_ANCHOR.findall(html)]
+    if not tags:
+        tags = [_HTML_TAG.sub("", m) for m in _TAG_ANCHOR.findall(html)]
 
-    tags + _clean_tags(tags)
+    tags = _clean_tags(tags)
     _page_tag_cache[url] = tags
     return tags
 

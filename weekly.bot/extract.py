@@ -1,4 +1,3 @@
-"""Parse Bandcamp Discover API results into artist / track candidates."""
 
 from urllib.parse import urlparse, urlunparse
 
@@ -10,13 +9,33 @@ def _clean_url(url: str | None) -> str | None:
     return urlunparse((parsed.scheme, parsed.netloc, parsed.path, "", "", ""))
 
 
-def from_discover_result(item: dict):
-    """
-    Return (guid, link, raw_title, artist, track, published) for a Discover hit.
+def _item_tags(item: dict) -> list[str]:
+    tags: list[str] = []
+    for key in ("tags", "item_tags", "tag_names", "tag_norm_names", "genre_text", "genre"):
+        value = item.get(key)
+        if not value:
+            continue
+        if isinstance(value, str):
+            tags.append(value)
+        elif isinstance(value, list):
+            for entry in value:
+                if isinstance(entry, str):
+                    tags.append(entry)
+                elif isinstance(entry, dict):
+                    name = entry.get("name") or entry.get("norm_name")
+                    if name:
+                        tags.append(name)
 
-    Prefer the featured track (what Discover highlights) so candidates are
-    track-level, which matches better against Spotify listening history.
-    """
+    seen, out = set(), []
+    for tag in tags:
+        t = tag.strip().lower()
+        if t and t not in seen:
+            seen.add(t)
+            out.append(t)
+    return out
+
+
+def from_discover_result(item: dict) -> dict:
     item_type = item.get("item_type") or item.get("result_type") or "a"
     item_id = item.get("item_id")
     featured = item.get("featured_track") or {}
@@ -43,7 +62,13 @@ def from_discover_result(item: dict):
     else:
         raw_title = album_title or track or artist or guid
 
-    link = _clean_url(item.get("item_url"))
-    published = item.get("release_date")
-
-    return guid, link, raw_title, artist or None, track or None, published
+    return {
+        "guid": guid,
+        "link": _clean_url(item.get("item_url")),
+        "raw_title": raw_title,
+        "artist": artist or None,
+        "track": track or None,
+        "album": album_title or None,
+        "published": item.get("release_date"),
+        "tags": _item_tags(item),
+    }

@@ -36,10 +36,8 @@ def _parse_rules_for_ua(robots_text: str, user_agent: str) -> list[tuple[str, bo
         if lower.startswith("user-agent:"):
             agent = line.split(":", 1)[1].strip().lower()
             if saw_agents and current_rules:
-                # New UA block after rules → new group.
                 flush()
             elif not saw_agents and current_agents and not current_rules:
-                # Multiple UAs sharing upcoming rules.
                 pass
             elif saw_agents and not current_rules:
                 flush()
@@ -54,11 +52,9 @@ def _parse_rules_for_ua(robots_text: str, user_agent: str) -> list[tuple[str, bo
             path = line.split(":", 1)[1].strip()
             current_rules.append((path, True))
             continue
-        # Ignore Crawl-delay / Sitemap / etc. for allow checks.
 
     flush()
 
-    # Prefer a named match over "*".
     starred = []
     named = []
     for agents, rules in groups:
@@ -72,12 +68,10 @@ def _parse_rules_for_ua(robots_text: str, user_agent: str) -> list[tuple[str, bo
 
 def _path_matches(rule_path: str, url_path: str) -> bool:
     if rule_path == "":
-        return False  # empty Disallow = allow all; empty Allow = meaningless
+        return False
     if rule_path.endswith("$"):
         return url_path == rule_path[:-1]
-    # "*" only appears in Bandcamp as /*_cb$ which we handle above via $.
     if "*" in rule_path:
-        # Minimal glob: prefix before first *.
         prefix = rule_path.split("*", 1)[0]
         return url_path.startswith(prefix)
     return url_path.startswith(rule_path)

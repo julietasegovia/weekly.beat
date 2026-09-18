@@ -10,6 +10,7 @@ from config import (
 from db import get_conn, insert_candidate, set_feed_state
 from extract import from_discover_result
 from robots_check import is_allowed, polite_post
+from taxonomy import best_genre
 
 
 class ScrapeResult:
@@ -68,19 +69,24 @@ def scrape_tag(tag: str | None = None, size: int | None = None) -> ScrapeResult:
     with get_conn() as conn:
         for item in items:
             result.entries_seen += 1
-            guid, link, raw_title, artist, track, published = from_discover_result(item)
-            if not guid:
+            parsed = from_discover_result(item)
+            if not parsed["guid"]:
                 continue
 
+            genre, confidence = best_genre(parsed["tags"])
             inserted = insert_candidate(
                 conn,
                 source=source,
-                guid=str(guid),
-                link=link,
-                raw_title=raw_title,
-                artist_guess=artist,
-                track_guess=track,
-                published=published,
+                guid=str(parsed["guid"]),
+                link=parsed["link"],
+                raw_title=parsed["raw_title"],
+                artist_guess=parsed["artist"],
+                track_guess=parsed["track"],
+                published=parsed["published"],
+                tags=parsed["tags"],
+                genre=genre,
+                genre_source="discover-tag" if genre else None,
+                genre_confidence=confidence if genre else None,
             )
             if inserted:
                 result.new_candidates += 1
