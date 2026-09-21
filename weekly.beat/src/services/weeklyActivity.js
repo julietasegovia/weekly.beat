@@ -49,11 +49,20 @@ async function fetchArtistsByIds(ids, accessToken) {
     const uniqueIds = [...new Set(ids)]
     const artistsById = new Map()
 
-    for (let i = 0; i < uniqueIds.length; i += 50) {
-        const chunk = uniqueIds.slice(i, i + 50)
-        const url = `${ARTISTS_URL}?ids=${chunk.join(',')}`
-        const data = await spotifyGet(url, accessToken)
-        for (const artist of data.artists) {
+    const CONCURRENCY = 5
+    for (let i = 0; i < uniqueIds.length; i += CONCURRENCY) {
+        const chunk = uniqueIds.slice(i, i + CONCURRENCY)
+        const results = await Promise.all(
+            chunk.map(async (id) => {
+                try {
+                    return await spotifyGet(`${ARTISTS_URL}/${id}`, accessToken)
+                } catch (err) {
+                    console.warn(`Could not fetch artist ${id}:`, err.message)
+                    return null
+                }
+            })
+        )
+        for (const artist of results) {
             if (artist) artistsById.set(artist.id, artist)
         }
     }
@@ -78,7 +87,6 @@ export async function getWeeklyActivity() {
                 id: track.id,
                 name: track.name,
                 durationMs: track.duration_ms,
-                popularity: track.popularity,
                 url: track.external_urls?.spotify,
             },
             album: {
