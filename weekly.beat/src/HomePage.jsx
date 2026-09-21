@@ -98,9 +98,19 @@ const HomePage = () => {
                     className="group flex items-center gap-4 p-4 rounded-3xl bg-white/[0.03] backdrop-blur-sm transition-all duration-300 cursor-pointer"
                   >
 
-                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-500/40 to-pink-500/30 flex-shrink-0 shadow-lg relative overflow-hidden">
-                      <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors"></div>
-                    </div>
+                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br          
+                      from-emerald-500/40 to-pink-500/30 flex-shrink-0 shadow-lg      
+                      relative overflow-hidden">                                      
+                        {track.imageUrl && (                                          
+                          <img                                                        
+                            src={track.imageUrl}                                      
+                            alt=""                                                    
+                            className="absolute inset-0 w-full h-full object-cover"  
+                          />                                                          
+                        )}                                                            
+                        <div className="absolute inset-0 bg-black/10                  
+                      group-hover:bg-black/0 transition-colors" />                    
+                    </div>  
 
                     <div className="flex-1 min-w-0 text-left">
                       <h3 className="font-semibold text-white truncate group-hover:text-green-400 transition-colors">
@@ -112,9 +122,9 @@ const HomePage = () => {
                       )}
                     </div>
 
-                    {track.spotifyUrl ? (
+                    {(track.url || track.spotifyUrl) ? (
                       <a
-                        href={track.spotifyUrl}
+                        href={track.url || track.spotifyUrl}
                         target="_blank"
                         rel="noreferrer"
                         className="w-10 h-10 rounded-full bg-green-500/10 border border-green-500/30 flex items-center justify-center text-green-400 opacity-0 group-hover:opacity-100 group-hover:bg-green-500 group-hover:text-white transition-all duration-300"

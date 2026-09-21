@@ -1,5 +1,6 @@
-const GENRE_TOKEN_WEIGHT = 2
-const TAG_TOKEN_WEIGHT = 1
+// Tags are the primary matching signal; genre is a secondary boost.
+const TAG_TOKEN_WEIGHT = 2
+const GENRE_TOKEN_WEIGHT = 1
 
 function tokenize(str) {
     if (!str) return []
@@ -8,27 +9,39 @@ function tokenize(str) {
 
 function buildUserProfile(weeklySummary) {
     const profile = new Map()
-    for (const { genre, count } of weeklySummary.topGenres) {
-        for (const token of tokenize(genre)) {
+
+    // Preferred: tags resolved from listened artists (MusicBrainz / Last.fm).
+    const topTags = weeklySummary.topTags || []
+    for (const { tag, count } of topTags) {
+        for (const token of tokenize(tag)) {
             profile.set(token, (profile.get(token) || 0) + count)
         }
     }
+
+    // Backward-compat: Spotify genres if a client still sends them.
+    if (topTags.length === 0) {
+        for (const { genre, count } of weeklySummary.topGenres || []) {
+            for (const token of tokenize(genre)) {
+                profile.set(token, (profile.get(token) || 0) + count)
+            }
+        }
+    }
+
     return profile
 }
 
 function buildCandidateProfile(candidate) {
     const profile = new Map()
 
-    for (const token of tokenize(candidate.genre)) {
-        profile.set(token, (profile.get(token) || 0) + GENRE_TOKEN_WEIGHT)
-    }
-
     const tags = Array.isArray(candidate.tags) ? candidate.tags : safeParseTags(candidate.tags)
-
     for (const tag of tags) {
         for (const token of tokenize(tag)) {
             profile.set(token, (profile.get(token) || 0) + TAG_TOKEN_WEIGHT)
         }
+    }
+
+    for (const token of tokenize(candidate.genre)) {
+        profile.set(token, (profile.get(token) || 0) + GENRE_TOKEN_WEIGHT)
     }
 
     return profile
@@ -66,17 +79,18 @@ function sharedTokens(mapA, mapB) {
 
 /**
  * @param {Array} candidates - rows from scraped
- * @param {Object} weeklySummary - the summary object from getWeeklyActivity.js
+ * @param {Object} weeklySummary - { topTags } and/or { topGenres }
  * @param {Object} [options]
  * @param {number} [options.topN=5]
  * @param {boolean} [options.newOnly=true]
  * @returns {Array} top matches, each candidate plus { score, matchedOn }
  */
-
 export function getTopMatches(candidates, weeklySummary, options = {}) {
     const { topN = 5, newOnly = true } = options
 
     const userProfile = buildUserProfile(weeklySummary)
+    if (userProfile.size === 0) return []
+
     const pool = newOnly ? candidates.filter((c) => c.status === 'new') : candidates
 
     const scored = pool.map((candidate) => {

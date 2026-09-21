@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { getWeeklyActivity } from './weeklyActivity'
+import { attachAlbumCovers } from './spoptifyCovers'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8787'
 
 const FALLBACK_TRACK = [
-    {title: 'Girl', artist:'your backend aint connected', blurb: 'dumbass'}
+    { title: 'Girl', artist: "your backend aint connected", blurb: 'dumbass' },
 ]
 
 export function useWeeklyRecs() {
@@ -16,20 +17,25 @@ export function useWeeklyRecs() {
         let cancelled = false
 
         async function load() {
-            try{
-                const {summary} = await getWeeklyActivity()
+            try {
+                const { summary } = await getWeeklyActivity()
                 const resp = await fetch(`${API_BASE}/api/recs/weekly`, {
                     method: 'POST',
-                    headers: { 'COntent-Type': 'application/json'},
-                    body: JSON.stringify({topGenres: summary.topGenres}),
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        topArtists: summary.topArtists.map(({ name, playCount }) => ({
+                            name,
+                            playCount,
+                        })),
+                    }),
                 })
-                if(!resp.ok) throw new Error(`Backend error ${resp.status}`)
+                if (!resp.ok) throw new Error(`Backend error ${resp.status}`)
 
                 const data = await resp.json()
-                if(!cancelled) setTracks(data.tracks)
-            }
-            catch (err) {
-                if(!cancelled){
+                const withCovers = await attachAlbumCovers(data.tracks || [])
+                if (!cancelled) setTracks(withCovers)
+            } catch (err) {
+                if (!cancelled) {
                     setTracks(FALLBACK_TRACK)
                     setUsingFallback(true)
                     setError(err.message)
@@ -40,8 +46,7 @@ export function useWeeklyRecs() {
         return () => {
             cancelled = true
         }
-
     }, [])
 
-    return {tracks, loading: tracks === null, usingFallback, error}
+    return { tracks, loading: tracks === null, usingFallback, error }
 }

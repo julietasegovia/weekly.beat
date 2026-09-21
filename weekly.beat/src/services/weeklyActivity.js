@@ -1,12 +1,11 @@
 import { getValidAccessToken } from '../auth/spotifyAuth'
 
 const RECENTLY_PLAYED_URL = 'https://api.spotify.com/v1/me/player/recently-played'
-const ARTISTS_URL = 'https://api.spotify.com/v1/artists'
 const MS_PER_DAY = 24 * 60 * 60 * 1000
 
 async function spotifyGet(url, accessToken) {
     const resp = await fetch(url, {
-        headers: { Authorization: `Bearer ${accessToken}` }
+        headers: { Authorization: `Bearer ${accessToken}` },
     })
     if (!resp.ok) {
         const text = await resp.text()
@@ -45,39 +44,16 @@ async function fetchRecentlyPlayedSince(sinceMs, accessToken) {
     return items
 }
 
-async function fetchArtistsByIds(ids, accessToken) {
-    const uniqueIds = [...new Set(ids)]
-    const artistsById = new Map()
-
-    const CONCURRENCY = 5
-    for (let i = 0; i < uniqueIds.length; i += CONCURRENCY) {
-        const chunk = uniqueIds.slice(i, i + CONCURRENCY)
-        const results = await Promise.all(
-            chunk.map(async (id) => {
-                try {
-                    return await spotifyGet(`${ARTISTS_URL}/${id}`, accessToken)
-                } catch (err) {
-                    console.warn(`Could not fetch artist ${id}:`, err.message)
-                    return null
-                }
-            })
-        )
-        for (const artist of results) {
-            if (artist) artistsById.set(artist.id, artist)
-        }
-    }
-
-    return artistsById
-}
-
+/**
+ * Spotify listening for the last 7 days.
+ * Genres are no longer used for matching — the backend resolves
+ * topArtists → MusicBrainz tags → Bandcamp tag overlap.
+ */
 export async function getWeeklyActivity() {
     const accessToken = await getValidAccessToken()
     const sinceMs = Date.now() - 7 * MS_PER_DAY
 
     const rawItems = await fetchRecentlyPlayedSince(sinceMs, accessToken)
-
-    const artistIds = rawItems.flatMap((item) => item.track.artists.map((a) => a.id))
-    const artistsById = await fetchArtistsByIds(artistIds, accessToken)
 
     const plays = rawItems.map((item) => {
         const track = item.track
@@ -95,14 +71,10 @@ export async function getWeeklyActivity() {
                 releaseDate: track.album.release_date,
                 imageUrl: track.album.images?.[0]?.url,
             },
-            artists: track.artists.map((a) => {
-                const full = artistsById.get(a.id)
-                return {
-                    id: a.id,
-                    name: a.name,
-                    genres: full?.genres ?? [],
-                }
-            }),
+            artists: track.artists.map((a) => ({
+                id: a.id,
+                name: a.name,
+            })),
         }
     })
 
@@ -111,7 +83,6 @@ export async function getWeeklyActivity() {
 
 function summarize(plays) {
     const artistCounts = new Map()
-    const genreCounts = new Map()
     let totalMs = 0
 
     for (const play of plays) {
@@ -122,24 +93,20 @@ function summarize(plays) {
             if (existing) {
                 existing.playCount += 1
             } else {
-                artistCounts.set(artist.id, { id: artist.id, name: artist.name, playCount: 1 })
-            }
-
-            for (const genre of artist.genres) {
-                genreCounts.set(genre, (genreCounts.get(genre) || 0) + 1)
+                artistCounts.set(artist.id, {
+                    id: artist.id,
+                    name: artist.name,
+                    playCount: 1,
+                })
             }
         }
     }
 
     const topArtists = [...artistCounts.values()].sort((a, b) => b.playCount - a.playCount)
-    const topGenres = [...genreCounts.entries()]
-        .map(([genre, count]) => ({ genre, count }))
-        .sort((a, b) => b.count - a.count)
 
     return {
         totalPlays: plays.length,
         totalMinutes: Math.round(totalMs / 60000),
         topArtists,
-        topGenres,
     }
 }
