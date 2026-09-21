@@ -11,7 +11,7 @@ TAGS = [
 
 SLICE = "new"
 
-RESULTS_PER_TAG = 40
+RESULTS_PER_TAG = 100
 
 USER_AGENT = "weekly.bot/0.1 (+https://github.com/weekly.beat; bandcamp discover)"
 
