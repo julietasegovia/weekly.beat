@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react"
 import { useSpotifyAuth } from './auth/useSpotifyAuth'
+import { useWeeklyRecs } from './services/useWeeklyRecs'
 
 const HomePage = () => {
   const { loggedIn, login, logout } = useSpotifyAuth()
+  const { tracks, loading, usingFallback } = useWeeklyRecs()
 
   const [timeLeft, setTimeLeft] = useState({
     days: 0, hours: 0, minutes: 0, seconds: 0,
@@ -31,14 +33,6 @@ const HomePage = () => {
     const timer = setInterval(() => setTimeLeft(calculateTimeLeft()), 1000)
     return () => clearInterval(timer)
   }, [loggedIn])
-
-  const tracks = [
-    { title: "song 1", artist: "artist 1", cover: ""},
-    { title: "song 2", artist: "artist 2", cover: ""},
-    { title: "song 3", artist: "artist 3", cover: ""},
-    { title: "song 4", artist: "artist 4", cover: ""},
-    { title: "song 5", artist: "artist 5", cover: ""},
-  ]
 
   return (
     <main className="min-h-screen min-w-screen bg-gray-900 text-white flex flex-col items-center justify-center text-center relative overflow-hidden">
@@ -87,34 +81,59 @@ const HomePage = () => {
               <div className="text-xs text-emerald-400 tracking-widest uppercase flex opacity-70 items-center gap-2">
                 This Week's Picks
               </div>
+              {usingFallback && (
+                <p className="text-[11px] text-gray-500 normal-case tracking-normal">
+                  Showing example picks — backend not reachable yet.
+                </p>
+              )}
             </div>
 
-            <div className="w-full space-y-3 mb-12">
-              {tracks.map((track, i) => (
-                <div
-                  key={i}
-                  className="group flex items-center gap-4 p-4 rounded-3xl bg-white/[0.03] backdrop-blur-sm transition-all duration-300 cursor-pointer"
-                >
+            {loading ? (
+              <p className="text-gray-500 text-sm mb-12">Pulling this week's picks…</p>
+            ) : (
+              <div className="w-full space-y-3 mb-12">
+                {tracks.map((track, i) => (
+                  <div
+                    key={i}
+                    className="group flex items-center gap-4 p-4 rounded-3xl bg-white/[0.03] backdrop-blur-sm transition-all duration-300 cursor-pointer"
+                  >
 
-                  <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${track.cover} flex-shrink-0 shadow-lg relative overflow-hidden`}>
-                    <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors"></div>
+                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-500/40 to-pink-500/30 flex-shrink-0 shadow-lg relative overflow-hidden">
+                      <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors"></div>
+                    </div>
+
+                    <div className="flex-1 min-w-0 text-left">
+                      <h3 className="font-semibold text-white truncate group-hover:text-green-400 transition-colors">
+                        {track.title}
+                      </h3>
+                      <p className="text-sm text-gray-400 truncate">{track.artist}</p>
+                      {track.blurb && (
+                        <p className="text-xs text-gray-500 truncate">{track.blurb}</p>
+                      )}
+                    </div>
+
+                    {track.spotifyUrl ? (
+                      <a
+                        href={track.spotifyUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="w-10 h-10 rounded-full bg-green-500/10 border border-green-500/30 flex items-center justify-center text-green-400 opacity-0 group-hover:opacity-100 group-hover:bg-green-500 group-hover:text-white transition-all duration-300"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                          <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393" />
+                        </svg>
+                      </a>
+                    ) : (
+                      <button disabled className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-600 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                          <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393" />
+                        </svg>
+                      </button>
+                    )}
                   </div>
-
-                  <div className="flex-1 min-w-0 text-left">
-                    <h3 className="font-semibold text-white truncate group-hover:text-green-400 transition-colors">
-                      {track.title}
-                    </h3>
-                    <p className="text-sm text-gray-400 truncate">{track.artist}</p>
-                  </div>
-
-                  <button className="w-10 h-10 rounded-full bg-green-500/10 border border-green-500/30 flex items-center justify-center text-green-400 opacity-0 group-hover:opacity-100 group-hover:bg-green-500 group-hover:text-white transition-all duration-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                      <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393" />
-                    </svg>
-                  </button>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
 
             <div className="w-full flex flex-col items-center">
               <div className="flex items-center gap-3 text-xs text-pink-300 tracking-widest uppercase opacity-70">

@@ -1,32 +1,32 @@
-import { getValidAccessToken } from './auth/spotifyAuth'
+import { getValidAccessToken } from '../auth/spotifyAuth'
 
 const RECENTLY_PLAYED_URL = 'https://api.spotify.com/v1/me/player/recently-played'
 const ARTISTS_URL = 'https://api.spotify.com/v1/artists'
 const MS_PER_DAY = 24 * 60 * 60 * 1000
 
-async function spotifyGet(url, accessToken){
+async function spotifyGet(url, accessToken) {
     const resp = await fetch(url, {
-        headers: { Authorization: `Bearer ${accessToken}`}
+        headers: { Authorization: `Bearer ${accessToken}` }
     })
     if (!resp.ok) {
         const text = await resp.text()
         throw new Error(`Spotify API error ${resp.status} on ${url}: ${text}`)
     }
-    return rsp.json()
+    return resp.json()
 }
 
 async function fetchRecentlyPlayedSince(sinceMs, accessToken) {
     const items = []
     let url = `${RECENTLY_PLAYED_URL}?limit=50`
 
-    while(url){
+    while (url) {
         const page = await spotifyGet(url, accessToken)
         if (!page.items || page.items.length === 0) break
 
-        for (const item of page.items){
+        for (const item of page.items) {
             const playedAtMs = new Date(item.played_at).getTime()
-            if(playedAtMs >= sinceMs){
-                item.push(item)
+            if (playedAtMs >= sinceMs) {
+                items.push(item)
             }
         }
 
@@ -34,26 +34,26 @@ async function fetchRecentlyPlayedSince(sinceMs, accessToken) {
         const oldestMs = new Date(oldestInPage.played_at).getTime()
         const gotFullPage = page.items.length === 50
 
-        if(!gotFullPage || oldeestMs < sinceMs){
+        if (!gotFullPage || oldestMs < sinceMs) {
             break
         }
-    
+
         const beforeCursor = page.cursors?.before
-        if(!beforeCursor) break
+        if (!beforeCursor) break
         url = `${RECENTLY_PLAYED_URL}?limit=50&before=${beforeCursor}`
     }
     return items
 }
 
-async function fetchArtistsByIds(ids, accessToken){
+async function fetchArtistsByIds(ids, accessToken) {
     const uniqueIds = [...new Set(ids)]
     const artistsById = new Map()
 
-    for (let i = 0; i < uniqueIds.length; i += 50){
+    for (let i = 0; i < uniqueIds.length; i += 50) {
         const chunk = uniqueIds.slice(i, i + 50)
         const url = `${ARTISTS_URL}?ids=${chunk.join(',')}`
         const data = await spotifyGet(url, accessToken)
-        for(const artist of data.artists){
+        for (const artist of data.artists) {
             if (artist) artistsById.set(artist.id, artist)
         }
     }
@@ -74,21 +74,21 @@ export async function getWeeklyActivity() {
         const track = item.track
         return {
             playedAt: item.played_at,
-            track:{
+            track: {
                 id: track.id,
                 name: track.name,
-                durationMs: track.durations_ms,
+                durationMs: track.duration_ms,
                 popularity: track.popularity,
                 url: track.external_urls?.spotify,
             },
-            album:{
+            album: {
                 id: track.album.id,
                 name: track.album.name,
                 releaseDate: track.album.release_date,
                 imageUrl: track.album.images?.[0]?.url,
             },
-            artists: track.artists.map((a)=>{
-                const full = aartistsById.get(a.id)
+            artists: track.artists.map((a) => {
+                const full = artistsById.get(a.id)
                 return {
                     id: a.id,
                     name: a.name,
@@ -98,31 +98,39 @@ export async function getWeeklyActivity() {
         }
     })
 
-    return {plays, summary: summarize(plays)}
+    return { plays, summary: summarize(plays) }
 }
 
 function summarize(plays) {
-    totalMs += plays.track.durationMs
+    const artistCounts = new Map()
+    const genreCounts = new Map()
+    let totalMs = 0
 
-    for (const artist of plays.artists){
-        const existing = artistCounts.get(artist.id)
-        if(existing){
-            existing.playCount += 1
-        } else {
-            artistCounts.set(artist.id, {id: artist.id, name: artist.name, playCount: 1})
-        }
+    for (const play of plays) {
+        totalMs += play.track.durationMs
 
-        for (const genre of artists.gentres){
-            genreCounts.set(genre, (genreCounts.get(genre) || 0) + 1)
+        for (const artist of play.artists) {
+            const existing = artistCounts.get(artist.id)
+            if (existing) {
+                existing.playCount += 1
+            } else {
+                artistCounts.set(artist.id, { id: artist.id, name: artist.name, playCount: 1 })
+            }
+
+            for (const genre of artist.genres) {
+                genreCounts.set(genre, (genreCounts.get(genre) || 0) + 1)
+            }
         }
     }
 
-    const topArtists = [...artistCounts.values()].sort((a, b) => b.playCount - aplayCount)
-    const topGenres = [...genreCOunts.entries()].map(([genre, count]) => ({ genre, count})).sort((a,b)=> b.count - a.count)
+    const topArtists = [...artistCounts.values()].sort((a, b) => b.playCount - a.playCount)
+    const topGenres = [...genreCounts.entries()]
+        .map(([genre, count]) => ({ genre, count }))
+        .sort((a, b) => b.count - a.count)
 
     return {
         totalPlays: plays.length,
-        totalMinutes: Math.round(totalMs/60000),
+        totalMinutes: Math.round(totalMs / 60000),
         topArtists,
         topGenres,
     }
