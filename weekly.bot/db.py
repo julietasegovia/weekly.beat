@@ -16,8 +16,9 @@ CREATE TABLE IF NOT EXISTS candidates (
     artist_guess TEXT,
     track_guess TEXT,
     published TEXT,
-    status TEXT NOT NULL DEFAULT 'new', -- new | matched | rejected
+    status TEXT NOT NULL DEFAULT 'new', -- new | matched | rejected | archived
     scraped_at TEXT NOT NULL,
+    week INTEGER,                       -- which week was this scraped at
     genre TEXT,                         -- specific genre, e.g. 'dungeon synth'
     genre_source TEXT,                  -- bandcamp-tag | artist-tag | musicbrainz | discover-tag
     genre_confidence REAL,              -- 0.0 - 1.0
@@ -33,6 +34,12 @@ CREATE TABLE IF NOT EXISTS feed_state (
     last_modified TEXT,
     last_run_at TEXT
 );
+
+CREATE TABLE IF NOT EXISTS runs (
+    week INTEGER PRIMARY KEY,
+    started_at TEXT NOT NULL,
+    reset_at TEXT
+);
 """
 _MIGRATIONS = [
     ("genre", "ALTER TABLE candidates ADD COLUMN genre TEXT"),
@@ -40,8 +47,8 @@ _MIGRATIONS = [
     ("genre_confidence", "ALTER TABLE candidates ADD COLUMN genre_confidence REAL"),
     ("tags", "ALTER TABLE candidates ADD COLUMN tags TEXT"),
     ("classified_at", "ALTER TABLE candidates ADD COLUMN classified_at TEXT"),
-    ("classify_attempts",
-     "ALTER TABLE candidates ADD COLUMN classify_attempts INTEGER NOT NULL DEFAULT 0"),
+    ("classify_attempts", "ALTER TABLE candidates ADD COLUMN classify_attempts INTEGER NOT NULL DEFAULT 0"),
+    ("week", "ALTER TABLE candidates ADD COLUMN week INTEGER"),
 ]
 
 
@@ -88,6 +95,7 @@ def insert_candidate(
     genre=None,
     genre_source=None,
     genre_confidence=None,
+    week=None,
 ):
     """Insert a candidate; silently skip if (source, guid) already exists.
     Returns True if a new row was inserted, False if it was a duplicate."""
@@ -96,8 +104,8 @@ def insert_candidate(
             """
             INSERT INTO candidates
                 (source, guid, link, raw_title, artist_guess, track_guess, published,
-                 scraped_at, tags, genre, genre_source, genre_confidence, classified_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 scraped_at, week, tags, genre, genre_source, genre_confidence, classified_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 source,
@@ -108,6 +116,7 @@ def insert_candidate(
                 track_guess,
                 published,
                 datetime.now(timezone.utc).isoformat(),
+                week,
                 json.dumps(tags) if tags else None,
                 genre,
                 genre_source,

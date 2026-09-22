@@ -37,7 +37,9 @@ def _discover_payload(tag: str | None, size: int) -> dict:
     }
 
 
-def scrape_tag(tag: str | None = None, size: int | None = None) -> ScrapeResult:
+def scrape_tag(
+    tag: str | None = None, size: int | None = None, week: int | None = None
+) -> ScrapeResult:
     """Fetch one Discover page for a tag (or the unfiltered feed if tag is None)."""
     source = f"bandcamp:{tag}" if tag else "bandcamp"
     result = ScrapeResult(source)
@@ -87,6 +89,7 @@ def scrape_tag(tag: str | None = None, size: int | None = None) -> ScrapeResult:
                 genre=genre,
                 genre_source="discover-tag" if genre else None,
                 genre_confidence=confidence if genre else None,
+                week=week,
             )
             if inserted:
                 result.new_candidates += 1
@@ -96,13 +99,13 @@ def scrape_tag(tag: str | None = None, size: int | None = None) -> ScrapeResult:
     return result
 
 
-def scrape_all(tags: list | None = None) -> list:
+def scrape_all(tags: list | None = None, week: int | None = None) -> list:
     tags = TAGS if tags is None else tags
     to_scrape = tags if tags else [None]
 
     results = []
     for i, tag in enumerate(to_scrape):
-        results.append(scrape_tag(tag))
+        results.append(scrape_tag(tag, week=week))
         if i < len(to_scrape) - 1:
             time.sleep(REQUEST_DELAY_SECONDS)
     return results

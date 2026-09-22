@@ -36,3 +36,12 @@ MUSICBRAINZ_URL = "https://musicbrainz.org/ws/2/artist"
 MUSICBRAINZ_DELAY_SECONDS = 1.1
 
 MAX_CLASSIFY_ATTEMPTS = 2
+
+WEEKLY_RESET_WEEKDAY = 6
+
+WEEKLY_RESET_HOUR = 23
+
+WEEKLY_RESET_MINUTE = 0
+
+TIMEZONE = "America/Argentina/Buenos_Aires"
+

@@ -5,6 +5,7 @@ from classify import classify
 from config import TAGS
 from db import get_conn, count_new, count_unclassified, genre_breakdown, init_db
 from scraper import scrape_all, scrape_tag
+from week import ensure_current_week
 
 
 def print_result(result):
@@ -73,6 +74,11 @@ def main():
     if added:
         print(f"Migrated DB: added column(s) {', '.join(added)}")
 
+    with get_conn() as conn:
+        wid, rotated = ensure_current_week(conn)
+        if rotated:
+            print(f"Week changed to {wid}; prior tracks soft-reset (archived)")
+
     if args.summary:
         with get_conn() as conn:
             print(f"New (unmatched) candidates in DB: {count_new(conn)}")
@@ -100,15 +106,17 @@ def main():
             print_genres(conn)
         return
 
+    print(f"Current week: {wid}")
+
     if args.tag:
         if TAGS and args.tag not in TAGS:
             print(
                 f"Note: '{args.tag}' is not in config.TAGS; scraping anyway",
                 file=sys.stderr,
             )
-        print_result(scrape_tag(args.tag))
+        print_result(scrape_tag(args.tag, week=wid))
     else:
-        for result in scrape_all():
+        for result in scrape_all(week=wid):
             print_result(result)
 
     with get_conn() as conn:

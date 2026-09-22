@@ -160,7 +160,7 @@ const HomePage = () => {
                   <div key={i} className="flex items-center gap-3">
                     <div className="flex flex-col items-center">
                       <div className="w-16 h-16 backdrop-blur-sm flex items-center justify-center">
-                        <span className="text-4xl font-bold font-mono bg-gradient-to-br from-pink-300 to-emerald-400 bg-clip-text text-transparent opacity-70">
+                        <span className="text-4xl font-bold font-mono text-white bg-clip-text opacity-70">
                           {String(unit.value).padStart(2, "0")}
                         </span>
                       </div>
@@ -168,7 +168,6 @@ const HomePage = () => {
                         {unit.label}
                       </span>
                     </div>
-                    {i < 3 && <span className="text-2xl text-gray-600 -mt-6">:</span>}
                   </div>
                 ))}
               </div>

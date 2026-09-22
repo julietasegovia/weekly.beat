@@ -1,0 +1,10 @@
+[Unit]
+Description=Weekly Bandcamp scrape + classify (soft-resets prior week)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/juli/porject/weekly.beat/weekly.bot
+ExecStart=/home/juli/porject/weekly.beat/weekly.bot/run_weekly.sh
+Nice=10

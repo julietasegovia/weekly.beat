@@ -1,0 +1,12 @@
+[Unit]
+Description=Run weekly.bot every Monday after the Sunday soft-reset
+
+[Timer]
+# Soft-reset boundary is Sunday 23:00 America/Argentina/Buenos_Aires.
+# Fire early Monday so the feed has a fresh pool for the new week.
+OnCalendar=Mon *-*-* 00:15:00 America/Argentina/Buenos_Aires
+Persistent=true
+RandomizedDelaySec=5m
+
+[Install]
+WantedBy=timers.target
