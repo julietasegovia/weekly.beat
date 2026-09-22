@@ -4,7 +4,7 @@ import { useWeeklyRecs } from './services/useWeeklyRecs'
 
 const HomePage = () => {
   const { loggedIn, login, logout } = useSpotifyAuth()
-  const { tracks, artistOfWeek, loading, usingFallback } = useWeeklyRecs()
+  const { tracks, artistOfWeek, albumOfWeek, loading, usingFallback } = useWeeklyRecs()
 
   const [timeLeft, setTimeLeft] = useState({
     days: 0, hours: 0, minutes: 0, seconds: 0,
@@ -119,9 +119,45 @@ const HomePage = () => {
                 </>
               )}
 
-              <div className="w-52 h-52 rounded-2xl bg-gradient-to-br from-pink-500/40 to-emerald-500/30 shadow-lg relative overflow-hidden mt-4">
-              </div>
-              <p className="text-m text-gray-300 mt-2 font-bold opacity-80">Super Cool Album</p>
+              {albumOfWeek?.url ? (
+                <a
+                  href={albumOfWeek.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group flex flex-col items-center gap-3 mt-4"
+                >
+                  <div className="w-52 h-52 rounded-2xl bg-gradient-to-br from-pink-500/40 to-emerald-500/30 shadow-lg relative overflow-hidden">
+                    {albumOfWeek.imageUrl && (
+                      <img
+                        src={albumOfWeek.imageUrl}
+                        alt=""
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    )}
+                    <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
+                  </div>
+                  <div className="text-center max-w-[13rem]">
+                    <p className="text-m text-gray-300 font-bold opacity-90 group-hover:text-green-400 transition-colors truncate">
+                      {albumOfWeek.title}
+                    </p>
+                    {albumOfWeek.artist && (
+                      <p className="text-xs text-gray-400 mt-0.5 truncate">{albumOfWeek.artist}</p>
+                    )}
+                    {albumOfWeek.blurb && (
+                      <p className="text-xs text-gray-500 mt-1 leading-snug">
+                        {albumOfWeek.blurb}
+                      </p>
+                    )}
+                  </div>
+                </a>
+              ) : (
+                <>
+                  <div className="w-52 h-52 rounded-2xl bg-gradient-to-br from-pink-500/40 to-emerald-500/30 shadow-lg relative overflow-hidden mt-4" />
+                  <p className="text-m text-gray-300 mt-2 font-bold opacity-80">
+                    {loading ? 'Finding your album…' : 'Album of the week'}
+                  </p>
+                </>
+              )}
             </div>
 
             <div className="w-full">

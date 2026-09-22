@@ -180,9 +180,49 @@ function artistOfWeekBlurb({ trackCount, best }) {
 }
 
 /**
- * Album-of-the-week placeholder until album_guess / item_type land in the DB.
- * @returns {null}
+ * Choose the best matching album of the week among album releases.
+ *
+ * @param {Array} candidates - rows from scraped
+ * @param {Object} weeklySummary
+ * @param {Object} [options]
+ * @param {boolean} [options.newOnly=true]
+ * @returns {Object|null}
  */
-export function getAlbumOfWeek() {
-    return null
+export function getAlbumOfWeek(candidates, weeklySummary, options = {}) {
+    const { newOnly = true } = options
+    const userProfile = buildUserProfile(weeklySummary)
+    if (userProfile.size === 0) return null
+
+    const pool = (newOnly ? candidates.filter((c) => c.status === 'new') : candidates)
+        .filter((c) => c.item_type === 'a' && c.album_guess)
+
+    let best = null
+    for (const candidate of pool) {
+        const candidateProfile = buildCandidateProfile(candidate)
+        const rawScore = cosineSimilarity(userProfile, candidateProfile)
+        if (rawScore <= 0) continue
+
+        const confidence = candidate.genre_confidence ?? 1
+        const score = rawScore * confidence
+        if (!best || score > best.score) {
+            best = {
+                ...candidate,
+                score,
+                matchedOn: sharedTokens(userProfile, candidateProfile).slice(0, 3),
+            }
+        }
+    }
+    if (!best) return null
+
+    return {
+        title: best.album_guess,
+        artist: best.artist_guess,
+        url: best.link,
+        spotifyUrl: best.spotify_url || null,
+        matchedOn: best.matchedOn,
+        score: Math.round(best.score * 1000) / 1000,
+        blurb: best.matchedOn.length
+            ? `Has some ${best.matchedOn.join(', ')} tracks`
+            : `Worth listening back-to-back`,
+    }
 }

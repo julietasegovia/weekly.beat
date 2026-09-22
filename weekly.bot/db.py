@@ -52,7 +52,7 @@ _MIGRATIONS = [
     ("classify_attempts", "ALTER TABLE candidates ADD COLUMN classify_attempts INTEGER NOT NULL DEFAULT 0"),
     ("week", "ALTER TABLE candidates ADD COLUMN week INTEGER"),
     ("item_type", "ALTER TABLE candidates ADD COLUMN item_type TEXT"),
-    ("album_guess", "ALTER TABLE candidates ADD COULUMN album_guess TEXT"),
+    ("album_guess", "ALTER TABLE candidates ADD COLUMN album_guess TEXT"),
 ]
 
 
@@ -111,8 +111,8 @@ def insert_candidate(
             INSERT INTO candidates
                 (source, guid, link, raw_title, artist_guess, track_guess, published,
                  scraped_at, week, tags, genre, genre_source, genre_confidence,
-                   item_type, album_guess, classified_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 item_type, album_guess, classified_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 source,
