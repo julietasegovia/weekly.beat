@@ -35,7 +35,7 @@ const HomePage = () => {
   }, [loggedIn])
 
   return (
-    <main className="min-h-screen min-w-screen bg-gray-900 text-white flex flex-col items-center justify-center text-center relative overflow-hidden">
+    <main className="min-h-screen w-full bg-gray-900 text-white flex flex-col items-center justify-center text-center relative overflow-clip">
 
       <div className="absolute -top-128 -left-128 w-[1200px] h-[1200px] rounded-full bg-gradient-to-br from-emerald-400/30 via-emerald-600/10 to-emerald-800/5 blur-3xl rotate-45 animate-float"></div>
 
@@ -47,7 +47,7 @@ const HomePage = () => {
       <div className="absolute top-1/3 right-1/3 w-1.5 h-1.5 bg-pink-400/60 rounded-full blur-sm animate-ping-delay"></div>
       <div className="absolute bottom-1/4 left-1/3 w-1 h-1 bg-emerald-400/40 rounded-full blur-sm animate-ping-delay-2"></div>
 
-      <div className="relative z-10 w-full max-w-3xl mx-auto px-6 py-16 flex flex-col items-center">
+      <div className="relative z-10 w-full max-w-5xl mx-auto px-6 py-16 flex flex-col items-center">
 
       <div className="flex flex-col items-center text-center space-y-4">
           <div className="text-7xl font-bold flex items-center">
@@ -77,76 +77,91 @@ const HomePage = () => {
 
         {loggedIn && (
           <>
-          <div className="flex flex-col items-center text-center space-y-3 mt-10 mb-4">
-              <div className="text-xs text-emerald-400 tracking-widest uppercase flex opacity-70 items-center gap-2">
-                This Week's Picks
+          <div className="text-xs text-emerald-400 tracking-widest opacity-80 mb-[-10px] mt-4 uppercase text-left">
+                this week's picks
+          </div>
+          <div className="w-full mt-12 mb-10 grid grid-cols-1 md:grid-cols-[auto_1fr] gap-8 items-start">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-52 h-52 rounded-full bg-gradient-to-br from-emerald-500/40 to-pink-500/30 shadow-lg relative overflow-hidden">
+                <div className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-white/60"></div>
               </div>
+              <p className="text-m text-gray-300 mt-2 font-bold opacity-80">Super Cool Artist</p>
+
+              <div className="w-52 h-52 rounded-2xl bg-gradient-to-br from-pink-500/40 to-emerald-500/30 shadow-lg relative overflow-hidden mt-4">
+              </div>
+              <p className="text-m text-gray-300 mt-2 font-bold opacity-80">Super Cool Album</p>
+            </div>
+
+            <div className="w-full">
+
               {usingFallback && (
-                <p className="text-[11px] text-gray-500 normal-case tracking-normal">
+                <p className="text-[11px] text-gray-500 normal-case tracking-normal text-left mb-4">
                   Showing example picks — backend not reachable yet.
                 </p>
               )}
-            </div>
 
-            {loading ? (
-              <p className="text-gray-500 text-sm mb-12">Pulling this week's picks…</p>
-            ) : (
-              <div className="w-full space-y-3 mb-12">
-                {tracks.map((track, i) => (
-                  <div
-                    key={i}
-                    className="group flex items-center gap-4 p-4 rounded-3xl bg-white/[0.03] backdrop-blur-sm transition-all duration-300 cursor-pointer"
-                  >
+              {loading ? (
+                <p className="text-gray-500 text-sm mb-12 text-left">Pulling this week's picks…</p>
+              ) : (
+                <div className="w-full space-y-3 mb-12">
+                  {tracks.map((track, i) => (
+                    <div
+                      key={i}
+                      className="group flex items-center gap-4 p-4 rounded-3xl bg-white/[0.03] backdrop-blur-sm transition-all duration-300 cursor-pointer"
+                    >
 
-                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br          
-                      from-emerald-500/40 to-pink-500/30 flex-shrink-0 shadow-lg      
-                      relative overflow-hidden">                                      
-                        {track.imageUrl && (                                          
-                          <img                                                        
-                            src={track.imageUrl}                                      
-                            alt=""                                                    
-                            className="absolute inset-0 w-full h-full object-cover"  
-                          />                                                          
-                        )}                                                            
-                        <div className="absolute inset-0 bg-black/10                  
-                      group-hover:bg-black/0 transition-colors" />                    
-                    </div>  
+                      <div className="w-14 h-14 rounded-xl bg-gradient-to-br
+                        from-emerald-500/40 to-pink-500/30 flex-shrink-0 shadow-lg
+                        relative overflow-hidden">
+                          {track.imageUrl && (
+                            <img
+                              src={track.imageUrl}
+                              alt=""
+                              className="absolute inset-0 w-full h-full object-cover"
+                            />
+                          )}
+                          <div className="absolute inset-0 bg-black/10
+                        group-hover:bg-black/0 transition-colors" />
+                      </div>
 
-                    <div className="flex-1 min-w-0 text-left">
-                      <h3 className="font-semibold text-white truncate group-hover:text-green-400 transition-colors">
-                        {track.title}
-                      </h3>
-                      <p className="text-sm text-gray-400 truncate">{track.artist}</p>
-                      {track.blurb && (
-                        <p className="text-xs text-gray-500 truncate">{track.blurb}</p>
+                      <div className="flex-1 min-w-0 text-left">
+                        <h3 className="font-semibold text-white truncate group-hover:text-green-400 transition-colors">
+                          {track.title}
+                        </h3>
+                        <p className="text-sm text-gray-400 truncate">{track.artist}</p>
+                        {track.blurb && (
+                          <p className="text-xs text-gray-500 truncate">{track.blurb}</p>
+                        )}
+                      </div>
+
+                      {(track.url || track.spotifyUrl) ? (
+                        <a
+                          href={track.url || track.spotifyUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="w-10 h-10 rounded-full bg-green-500/10 border border-green-500/30 flex items-center justify-center text-green-400 opacity-0 group-hover:opacity-100 group-hover:bg-green-500 group-hover:text-white transition-all duration-300"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393" />
+                          </svg>
+                        </a>
+                      ) : (
+                        <button disabled className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-600 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393" />
+                          </svg>
+                        </button>
                       )}
                     </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
-                    {(track.url || track.spotifyUrl) ? (
-                      <a
-                        href={track.url || track.spotifyUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="w-10 h-10 rounded-full bg-green-500/10 border border-green-500/30 flex items-center justify-center text-green-400 opacity-0 group-hover:opacity-100 group-hover:bg-green-500 group-hover:text-white transition-all duration-300"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                          <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393" />
-                        </svg>
-                      </a>
-                    ) : (
-                      <button disabled className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-600 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                          <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393" />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
+          </div>
 
             <div className="w-full flex flex-col items-center">
-              <div className="flex items-center gap-3 text-xs text-pink-300 tracking-widest uppercase opacity-70">
+              <div className="flex items-center gap-3 text-xs text-pink-300 tracking-widest uppercase opacity-70 mt-[-40px]">
                 Next drop in
               </div>
 
