@@ -38,3 +38,38 @@ async function findAlbumImage(track, accessToken) {
         return null
     }
 }
+
+async function findArtistImage(artistName, accessToken) {
+    const artist = artistName?.trim()
+    if (!artist) return null
+
+    try {
+        const params = new URLSearchParams({ q: `artist:${artist}`, type: 'artist', limit: '1' })
+        const resp = await fetch(`${SEARCH_URL}?${params}`, {
+            headers: { Authorization: `Bearer ${accessToken}` },
+        })
+        if (!resp.ok) return null
+        const data = await resp.json()
+        return data.artists?.items?.[0]?.images?.[0]?.url ?? null
+    } catch {
+        return null
+    }
+}
+
+export async function attachArtistOfWeekCover(artistOfWeek) {
+    if (!artistOfWeek) return artistOfWeek
+    const accessToken = await getValidAccessToken()
+    const spotifyImage = await findArtistImage(artistOfWeek.artist, accessToken)
+    return {
+        ...artistOfWeek,
+        imageUrl: spotifyImage || artistOfWeek.representativeTrack?.bandcampImageUrl || null,
+    }
+}
+
+export async function attachAlbumOfWeekCover(albumOfWeek) {
+    if (!albumOfWeek) return albumOfWeek
+    return {
+        ...albumOfWeek,
+        imageUrl: albumOfWeek.bandcampImageUrl || null,
+    }
+}

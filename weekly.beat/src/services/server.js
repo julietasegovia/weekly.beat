@@ -3,7 +3,7 @@ import cors from 'cors'
 import Database from 'better-sqlite3'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { getTopMatches, blurbForMatch } from './matchTracks.js'
+import { getTopMatches, blurbForMatch, getArtistOfWeek, getAlbumOfWeek } from './matchTracks.js'
 import { buildTopTagsFromArtists } from './artistTags.js'
 
 const PORT = process.env.PORT || 8787
@@ -61,31 +61,48 @@ app.post('/api/recs/weekly', async (req, res) => {
             (topTags.length ? ` (e.g. ${topTags.slice(0, 5).map((t) => t.tag).join(', ')})` : ''),
         )
 
-        const top = getTopMatches(
-            candidates,
-            { topTags, topGenres: hasGenres ? topGenres : [] },
-            { topN: 5, newOnly: false },
-        )
+        const weeklySummary = { topTags, topGenres: hasGenres ? topGenres : [] }
+
+        const top = getTopMatches(candidates, weeklySummary, { topN: 5, newOnly: false })
         console.log(`[recs] ${top.length} matches scored above zero`)
 
-        const tracks = await Promise.all(
-            top.map(async (match) => {
-                const url = match.link || null
-                return {
-                    title: match.track_guess,
-                    artist: match.artist_guess,
-                    blurb: blurbForMatch(match),
-                    url,
-                    spotifyUrl: match.spotify_url || null,
-                    bandcampImageUrl: await fetchBandcampCover(url),
-                    matchedOn: match.matchedOn,
-                    score: Math.round(match.score * 1000) / 1000,
+        const artistOfWeek = getArtistOfWeek(candidates, weeklySummary, { newOnly: false })
+        const albumOfWeek = getAlbumOfWeek(candidates, weeklySummary, { newOnly: false })
+
+        const [tracks] = await Promise.all([
+            Promise.all(
+                top.map(async (match) => {
+                    const url = match.link || null
+                    return {
+                        title: match.track_guess,
+                        artist: match.artist_guess,
+                        blurb: blurbForMatch(match),
+                        url,
+                        spotifyUrl: match.spotify_url || null,
+                        bandcampImageUrl: await fetchBandcampCover(url),
+                        matchedOn: match.matchedOn,
+                        score: Math.round(match.score * 1000) / 1000,
+                    }
+                }),
+            ),
+            (async () => {
+                if (artistOfWeek?.representativeTrack?.url) {
+                    artistOfWeek.representativeTrack.bandcampImageUrl = await fetchBandcampCover(
+                        artistOfWeek.representativeTrack.url,
+                    )
                 }
-            }),
-        )
+            })(),
+            (async () => {
+                if (albumOfWeek?.url) {
+                    albumOfWeek.bandcampImageUrl = await fetchBandcampCover(albumOfWeek.url)
+                }
+            })(),
+        ])
 
         res.json({
             tracks,
+            artistOfWeek,
+            albumOfWeek,
             meta: {
                 candidateCount: candidates.length,
                 tagCount: topTags.length,

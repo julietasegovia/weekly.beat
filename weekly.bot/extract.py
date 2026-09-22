@@ -69,6 +69,7 @@ def from_discover_result(item: dict) -> dict:
         "artist": artist or None,
         "track": track or None,
         "album": album_title or None,
+        "item_type": item_type or None,
         "published": item.get("release_date"),
         "tags": _item_tags(item),
     }

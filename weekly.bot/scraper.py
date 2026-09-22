@@ -90,6 +90,8 @@ def scrape_tag(
                 genre_source="discover-tag" if genre else None,
                 genre_confidence=confidence if genre else None,
                 week=week,
+                item_type=parsed["item_type"],
+                album_guess=parsed["album"],
             )
             if inserted:
                 result.new_candidates += 1

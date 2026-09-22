@@ -23,6 +23,8 @@ CREATE TABLE IF NOT EXISTS candidates (
     genre_source TEXT,                  -- bandcamp-tag | artist-tag | musicbrainz | discover-tag
     genre_confidence REAL,              -- 0.0 - 1.0
     tags TEXT,                          -- JSON array of raw Bandcamp tags
+    item_type TEXT,                     -- is this track from an album or a single?
+    album_guess TEXT,
     classified_at TEXT,
     classify_attempts INTEGER NOT NULL DEFAULT 0,
     UNIQUE(source, guid)
@@ -49,6 +51,8 @@ _MIGRATIONS = [
     ("classified_at", "ALTER TABLE candidates ADD COLUMN classified_at TEXT"),
     ("classify_attempts", "ALTER TABLE candidates ADD COLUMN classify_attempts INTEGER NOT NULL DEFAULT 0"),
     ("week", "ALTER TABLE candidates ADD COLUMN week INTEGER"),
+    ("item_type", "ALTER TABLE candidates ADD COLUMN item_type TEXT"),
+    ("album_guess", "ALTER TABLE candidates ADD COULUMN album_guess TEXT"),
 ]
 
 
@@ -96,6 +100,8 @@ def insert_candidate(
     genre_source=None,
     genre_confidence=None,
     week=None,
+    item_type=None,
+    album_guess=None,
 ):
     """Insert a candidate; silently skip if (source, guid) already exists.
     Returns True if a new row was inserted, False if it was a duplicate."""
@@ -104,7 +110,8 @@ def insert_candidate(
             """
             INSERT INTO candidates
                 (source, guid, link, raw_title, artist_guess, track_guess, published,
-                 scraped_at, week, tags, genre, genre_source, genre_confidence, classified_at)
+                 scraped_at, week, tags, genre, genre_source, genre_confidence,
+                   item_type, album_guess, classified_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
@@ -121,6 +128,8 @@ def insert_candidate(
                 genre,
                 genre_source,
                 genre_confidence,
+                item_type,
+                album_guess,
                 datetime.now(timezone.utc).isoformat() if genre else None,
             ),
         )
