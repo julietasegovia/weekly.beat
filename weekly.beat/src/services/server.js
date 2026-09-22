@@ -3,6 +3,7 @@ import cors from 'cors'
 import Database from 'better-sqlite3'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { execSync } from 'node:child_process'
 import { getTopMatches, blurbForMatch, getArtistOfWeek, getAlbumOfWeek } from './matchTracks.js'
 import { buildTopTagsFromArtists } from './artistTags.js'
 
@@ -10,6 +11,13 @@ const PORT = process.env.PORT || 8787
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const DEFAULT_DB_PATH = path.resolve(__dirname, '../../../weekly.bot/candidates.db')
 const DB_PATH = process.env.CANDIDATES_DB_PATH || DEFAULT_DB_PATH
+
+// On hosts with no persistent disk (Render's free tier included), the DB
+// doesn't live on this machine — pull the copy the scraper last committed.
+if (process.env.CANDIDATES_DB_URL) {
+    console.log(`[recs] fetching candidates.db from ${process.env.CANDIDATES_DB_URL}`)
+    execSync(`curl -sL "${process.env.CANDIDATES_DB_URL}" -o "${DB_PATH}"`, { stdio: 'inherit' })
+}
 
 const app = express()
 app.use(cors())
@@ -117,8 +125,9 @@ app.post('/api/recs/weekly', async (req, res) => {
 
 app.get('/health', (req, res) => res.json({ ok: true }))
 
-const server = app.listen(PORT, '127.0.0.1', () => {
-    console.log(`Recs backend on 127.0.0.1:${PORT}`)
+const HOST = process.env.HOST || (process.env.RENDER ? '0.0.0.0' : '127.0.0.1')
+const server = app.listen(PORT, HOST, () => {
+    console.log(`Recs backend on ${HOST}:${PORT}`)
 })
 
 server.on('error', (err) => {
