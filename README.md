@@ -24,5 +24,22 @@ I scripted this bot using Python and made sure that it followed bandcamp's polic
 The extracted and classified data gets storaged in `candidates.db`, an sqlite file that is later used in the backend. This database gets reset at the end of each week so that the tracks are always hot and fresh (`weekly.py`).
 
 ### The backend
-The comparator and judge of which of the many songs stored in `candidates.db` will make it to the top 5 (same with artist and album).
+The comparator and judge of which of the many songs stored in `candidates.db` will make it to the top 5 (same with artist and album). 
 
+At first I wanted to collect the user's Spotify data directly using the Spotify Developer API but when deploying I run into the problem that that feature has been reduced since Febuary and now I can only use it on five users that I have to specifically put on a list of allowed users.
+
+Since I want my app to be usable by everyone, I'll try redoing this backend with last.fm as it has no limitations to the ammount of users per app.
+
+The logic itself is simple, I ask for the user's music history as soon as they log in (`services/weeklyActivity.js`), then I request the tags from MusicBrainz (`artistTags.js`). Once I have the user's activity summarized in tags I compare it to my database of candidates and get the best matches (`matchTracks.js`) based on tags, genre, and how confident the app is that the data was classified correctly (if a song on bandcamp doesn't have tags/genre the bot will assume that song's tags/genre is the same as the artist's and mark it as lower confidence). And that's essentially how the logic goes. 
+
+I also have a couple of scripts to connect that logic to the frontend, like `spotifyCovers.js` that gets the artist's/album's image and exports it to the frontend.
+
+### The frontend
+Everything you can visually percieve was made using React + Vite for structure and the TailwindCSS framework for styling. I've worked with these frameworks before and I love them because they're quick, super simple, and easy to deploy.
+
+I made it all in a single component (which is not usual for React) as it was a one-page, mostly static, simple design.
+
+For the design I wanted something similar to the Spotify UI but with a twist. I'm pretty happy with how it turned out.
+
+## AI usage declearation
+I used Cursor Agent for most of the tag comparation system and ocassionaly to debug other features.
