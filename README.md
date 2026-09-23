@@ -2,14 +2,14 @@
 ## Introduction 
 This is probably my most ambitious project. It started out as a practice because I wanted to learn how scraper bots work and it ended up having a whole algorithm implemented and a Spotify linking.
 
-The main idea is simple, user logs in with spotify account and the app rquests the tracks the user listened to this week. Then, it uses MusicBrainz to put 'tags' to every single track. Those tags get compared to the bandcamp tags from the database where I store what the bot scraped.
+The main idea is simple, user logs in with spotify account and the app rquests the tracks the user listened to this week. Then, it uses MusicBrainz to put 'tags' to every single, artist, and album. Those tags get compared to the bandcamp tags from the database where I store what the bot scraped.
 
 The app then serves the user a recommendation of a small artist, an album and a list of 5 songs found on bandcamp.
 
 ![](./readme-imgs/Screenshot%20From%202026-09-22%2016-58-29.png)
 
 ## Why did I make this?
-I felt like I hadn't listened to new music in forever and Spotify itself makes it impossible to do so (check `documentation/INVESTIGATION.md` for more details on that). 
+I felt like I hadn't listened to new music in forever and Spotify itself makes it impossible to do so (check `documentation/INVESTIGATION.md` for more details on that).
 
 Straight up scrolling on bandcamp.com works but it can be a bit overwhelming. So I tried to find a middle ground with this project, new music but not totally different from what you're used to.
 
@@ -40,6 +40,12 @@ Everything you can visually percieve was made using React + Vite for structure a
 I made it all in a single component (which is not usual for React) as it was a one-page, mostly static, simple design.
 
 For the design I wanted something similar to the Spotify UI but with a twist. I'm pretty happy with how it turned out.
+
+## Deployment
+
+- **Backend**: Render -> https://weekly-beat.onrender.com
+- **Frontend**: Vercel -> https://weekly-beat.vercel.app
+- **Bot**: Github Actions -> yet to be deployed
 
 ## AI usage declearation
 I used Cursor Agent for most of the tag comparation system and ocassionaly to debug other features.
