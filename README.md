@@ -9,7 +9,7 @@ The app then serves the user a recommendation of a small artist, an album and a 
 ![](./readme-imgs/Screenshot%20From%202026-09-22%2016-58-29.png)
 
 ## Why did I make this?
-I felt like I hadn't listened to new music in forever and Spotify itself makes it impossible to do so (check `documentation/INVESTIGATION.md` for more details on that). 
+I felt like I hadn't listened to new music in forever and Spotify itself makes it impossible to do so (check `documentation/INVESTIGATION.md` for more details on that).
 
 Straight up scrolling on bandcamp.com works but it can be a bit overwhelming. So I tried to find a middle ground with this project, new music but not totally different from what you're used to.
 
@@ -31,5 +31,24 @@ The extracted and classified data gets storaged in `candidates.db`, an sqlite fi
 ### The backend
 The comparator and judge of which of the many songs stored in `candidates.db` will make it to the top 5 (same with artist and album).
 
+At first I wanted to collect the user's Spotify data directly using the Spotify Developer API but when deploying I run into the problem that that feature has been reduced since Febuary and now I can only use it on five users that I have to specifically put on a list of allowed users.
+
+Since I want my app to be usable by everyone, I redid this with last.fm as it has no limitations to the ammount of users per app.
+
+The logic itself is simple, I ask for the user's music history via Last.fm (`services/lastfmActivity.js`), then I request the tags from MusicBrainz (`artistTags.js`). Once I have the user's activity summarized in tags I compare it to my database of candidates and get the best matches (`matchTracks.js`) based on tags, genre, and how confident the app is that the data was classified correctly (if a song on bandcamp doesn't have tags/genre the bot will assume that song's tags/genre is the same as the artist's and mark it as lower confidence). And that's essentially how the logic goes.
+
 ### The frontend
 Asks for a Last.fm username, fetches the last 7 days of scrobbles via the Last.fm API, sends the top artists to the backend, and shows the weekly picks.
+
+Everything you can visually percieve was made using React + Vite for structure and the TailwindCSS framework for styling. I've worked with these frameworks before and I love them because they're quick, super simple, and easy to deploy.
+
+For the design I wanted something similar to the Spotify UI but with a twist. I'm pretty happy with how it turned out.
+
+## Deployment
+
+- **Backend**: Render -> https://weekly-beat.onrender.com
+- **Frontend**: Vercel -> https://weekly-beat.vercel.app
+- **Bot**: Github Actions -> yet to be deployed
+
+## AI usage declearation
+I used Cursor Agent for most of the tag comparation system and ocassionaly to debug other features.
