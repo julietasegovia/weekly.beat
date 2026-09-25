@@ -1,17 +1,18 @@
 import { useState, useEffect } from "react"
-import { useSpotifyAuth } from './auth/useSpotifyAuth'
+import { useLastfmUser } from './auth/useLastfmUser'
 import { useWeeklyRecs } from './services/useWeeklyRecs'
 
 const HomePage = () => {
-  const { loggedIn, login, logout } = useSpotifyAuth()
-  const { tracks, artistOfWeek, albumOfWeek, loading, usingFallback } = useWeeklyRecs()
+  const { username, linked, setUsername, clearUsername } = useLastfmUser()
+  const { tracks, artistOfWeek, albumOfWeek, loading, usingFallback, error } = useWeeklyRecs(username)
+  const [usernameInput, setUsernameInput] = useState(username)
 
   const [timeLeft, setTimeLeft] = useState({
     days: 0, hours: 0, minutes: 0, seconds: 0,
   })
 
   useEffect(() => {
-    if (!loggedIn) return
+    if (!linked) return
 
     const calculateTimeLeft = () => {
       const now = new Date()
@@ -24,7 +25,7 @@ const HomePage = () => {
       return {
         days: Math.floor(diff / (1000 * 60 * 60 * 24)),
         hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
-        minutes: Math.floor((diff / (1000 * 60)) % 60),
+        minutes: Math.floor((diff / (1000 * 60 * 60)) % 60),
         seconds: Math.floor((diff / 1000) % 60),
       }
     }
@@ -32,7 +33,12 @@ const HomePage = () => {
     setTimeLeft(calculateTimeLeft())
     const timer = setInterval(() => setTimeLeft(calculateTimeLeft()), 1000)
     return () => clearInterval(timer)
-  }, [loggedIn])
+  }, [linked])
+
+  const handleLink = (e) => {
+    e.preventDefault()
+    setUsername(usernameInput)
+  }
 
   return (
     <main className="min-h-screen w-full bg-gray-900 text-white flex flex-col items-center justify-center text-center relative overflow-clip">
@@ -60,26 +66,52 @@ const HomePage = () => {
           </p>
         </div>
 
-        {!loggedIn && (
-          <button
-            onClick={login}
-            className="group mt-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold py-3.5 px-8 rounded-full flex items-center gap-3 transition-all duration-300 hover:scale-105"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16" className="group-hover:rotate-12 transition-transform duration-300">
-              <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0m3.669 11.538a.5.5 0 0 1-.686.165c-1.879-1.147-4.243-1.407-7.028-.77a.499.499 0 0 1-.222-.973c3.048-.696 5.662-.397 7.77.892a.5.5 0 0 1 .166.686m.979-2.178a.624.624 0 0 1-.858.205c-2.15-1.321-5.428-1.704-7.972-.932a.625.625 0 0 1-.362-1.194c2.905-.881 6.517-.454 8.986 1.063a.624.624 0 0 1 .206.858m.084-2.268C10.154 5.56 5.9 5.419 3.438 6.166a.748.748 0 1 1-.434-1.432c2.825-.857 7.523-.692 10.492 1.07a.747.747 0 1 1-.764 1.288"/>
-            </svg>
-            <span className="text-xl">Link with Spotify</span>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" className="group-hover:translate-x-1 transition-transform duration-300">
-              <path fillRule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
-            </svg>
-          </button>
+        {!linked && (
+          <form onSubmit={handleLink} className="mt-8 flex flex-col items-center gap-3 w-full max-w-sm">
+            <label htmlFor="lastfm-username" className="text-sm text-gray-400">
+              Enter your Last.fm username to pull this week's scrobbles
+            </label>
+            <input
+              id="lastfm-username"
+              type="text"
+              value={usernameInput}
+              onChange={(e) => setUsernameInput(e.target.value)}
+              placeholder="last.fm username"
+              autoComplete="username"
+              className="w-full rounded-full bg-white/5 border border-white/10 px-5 py-3 text-white placeholder:text-gray-600 focus:outline-none focus:border-emerald-500/50"
+            />
+            <button
+              type="submit"
+              disabled={!usernameInput.trim()}
+              className="group bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold py-3.5 px-8 rounded-full flex items-center gap-3 transition-all duration-300 hover:scale-105 disabled:opacity-40 disabled:hover:scale-100 disabled:cursor-not-allowed"
+            >
+              <span className="text-xl">Link Last.fm</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" className="group-hover:translate-x-1 transition-transform duration-300">
+                <path fillRule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
+              </svg>
+            </button>
+          </form>
         )}
 
-        {loggedIn && (
+        {linked && (
           <>
-          <div className="text-xs text-emerald-400 tracking-widest opacity-80 mb-[-10px] mt-4 uppercase text-left">
-                this week's picks
+          <div className="flex items-center gap-3 mt-4 mb-[-6px]">
+            <div className="text-xs text-emerald-400 tracking-widest opacity-80 uppercase text-left">
+              this week's picks · @{username}
+            </div>
+            <button
+              type="button"
+              onClick={clearUsername}
+              className="text-[10px] text-gray-500 uppercase tracking-widest hover:text-pink-300 transition-colors"
+            >
+              change
+            </button>
           </div>
+          {error && usingFallback && (
+            <p className="text-[11px] text-pink-400/80 normal-case tracking-normal text-left mt-4 w-full">
+              {error}
+            </p>
+          )}
           <div className="w-full mt-12 mb-10 grid grid-cols-1 md:grid-cols-[auto_1fr] gap-8 items-start">
             <div className="flex flex-col items-center gap-3">
               {artistOfWeek?.representativeTrack?.url ? (

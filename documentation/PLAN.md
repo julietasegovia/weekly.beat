@@ -1,17 +1,15 @@
 # What Will I Make?
 
-This is an app where the user connect their spotify account to start tracking their streaming activity. Once a week the app will recommend a list of new tracks based on that week's activity.
+This is an app where the user links their Last.fm profile so the app can read their scrobbles. Once a week the app recommends a list of new tracks based on that week's activity.
 
 ## How Will I Make It?
 
-I'll use the spotify web API for the user to authenticate and link their account with the app (https://developer.spotify.com/documentation/web-api/howtos/web-app-profile). With this I can easily access the user's Spotify information, including favorite artists, tracks, listening history, etc. I'll store this on a database (that I still have to figure out).
+I'll use the Last.fm API (`user.getrecenttracks`) with a public API key. Scrobbles are public, so the user only needs to enter their Last.fm username — no OAuth. From those scrobbles we derive top artists for the week.
 
 Now for the recommendations. To find smaller yet good artists I'll make a scraper bot that will research music magazines and forums to find some niche tracks. I also have to figure out how to store this data.
 
 After I have both this things I'll make a sorting algorithm and choose the top tracks from the scraper based on how similar they are to the user's weekly activity.
 
-## Spotify Linking
+## Last.fm Linking
 
-Thankfully, a Spotify API already exists for this that'll make things easy for login. Thanks to this API I don't have to create a new login system as the user just has to use their spotify account.
-
-The login button on the landing page opens a spotify login page, then it redirects the user to a configured callback address (all on localhost for now). Then the API call happens and my app and spotify exchange the verification code for an access token (check `/src/auth/`). After the exchange the tokens are stored in the browser, so unless the user deletes cache, they shouldn't have to login with Spotify again.
+The landing page asks for a Last.fm username. That value is stored in `localStorage` and passed to `lastfmActivity.js`, which pages through recent tracks for the last 7 days and summarizes top artists. Those artists are POSTed to `/api/recs/weekly` for Bandcamp matching.

@@ -119,7 +119,7 @@ export async function getArtistTags(artistName) {
 }
 
 /**
- * Build a weighted tag list from Spotify top artists.
+ * Build a weighted tag list from top listened artists.
  * @param {Array<{ name: string, playCount: number }>} artists
  * @param {{ maxArtists?: number }} [options]
  * @returns {Promise<Array<{ tag: string, count: number }>>}

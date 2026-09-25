@@ -1,5 +1,4 @@
 import { BrowserRouter as Router, Route, Routes } from 'react-router'
-import SpotifyCallback from './auth/SpotifyCallback'
 import HomePage from './HomePage'
 import './App.css'
 
@@ -8,7 +7,6 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/callback" element={<SpotifyCallback redirectTo="/" />} />
       </Routes>
     </Router>
   )

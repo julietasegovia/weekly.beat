@@ -1,22 +1,28 @@
 const LASTFM_API_URL = 'https://ws.audioscrobbler.com/2.0/'
 const API_KEY = import.meta.env.VITE_LASTFM_API_KEY
-const MS_PER_DAY = 24 * 60 * 60 * 10000
+const MS_PER_DAY = 24 * 60 * 60 * 1000
 const PAGE_LIMIT = 200
 
-async function lastfmGet(params){
-    if(!API_KEY){
+async function lastfmGet(params) {
+    if (!API_KEY) {
         throw new Error('VITE_LASTFM_API_KEY is not set')
     }
+
     const url = new URL(LASTFM_API_URL)
-    url.search = new URLSearchParams({...params, api_key: API_KEY, format: 'join' })
+    url.search = new URLSearchParams({
+        ...params,
+        api_key: API_KEY,
+        format: 'json',
+    })
 
     const resp = await fetch(url)
-    if(!resp.ok){
+    if (!resp.ok) {
         const text = await resp.text()
         throw new Error(`Last.fm API error ${resp.status}: ${text.slice(0, 200)}`)
     }
-    const data = await resp.text()
-    if(data.error){
+
+    const data = await resp.json()
+    if (data.error) {
         throw new Error(`Last.fm error ${data.error}: ${data.message}`)
     }
     return data
@@ -27,7 +33,7 @@ async function fetchRecentTracksSince(username, sinceMs) {
     let page = 1
     let totalPages = 1
 
-    do{
+    do {
         const data = await lastfmGet({
             method: 'user.getrecenttracks',
             user: username,
@@ -37,11 +43,12 @@ async function fetchRecentTracksSince(username, sinceMs) {
         })
 
         const payload = data.recenttracks || {}
-        const tracks = paayload.track || []
+        const tracks = payload.track || []
+        const list = Array.isArray(tracks) ? tracks : [tracks]
         totalPages = Number(payload['@attr']?.totalPages || 1)
 
-        for(const track of tracks){
-            if(track['@attr']?.nowplaying) continue
+        for (const track of list) {
+            if (track['@attr']?.nowplaying) continue
             const playedAtSec = Number(track.date?.uts)
             if (!playedAtSec || playedAtSec * 1000 < sinceMs) continue
             items.push(track)
@@ -54,22 +61,26 @@ async function fetchRecentTracksSince(username, sinceMs) {
 }
 
 function summarize(items) {
-    const artistsCounts = new Map()
+    const artistCounts = new Map()
 
     for (const track of items) {
         const name = track.artist?.['#text']?.trim()
-        if(!name) continue
-        const key = track.artists?.mbid || name.toLowerCase()
+        if (!name) continue
 
-        const existing = artistsCounts.get(key)
+        const key = track.artist?.mbid || name.toLowerCase()
+        const existing = artistCounts.get(key)
         if (existing) {
-            existing.playCount +=1
+            existing.playCount += 1
         } else {
-            artistsCounts.set(key, {id: track.artist?.mbid || null, name, playCount: 1})
+            artistCounts.set(key, {
+                id: track.artist?.mbid || null,
+                name,
+                playCount: 1,
+            })
         }
     }
 
-    const topArtists = [...artistsCounts.values()].sort((a, b) => b.playCount - a.playCount)
+    const topArtists = [...artistCounts.values()].sort((a, b) => b.playCount - a.playCount)
 
     return {
         totalPlays: items.length,
@@ -77,6 +88,10 @@ function summarize(items) {
     }
 }
 
+/**
+ * Last.fm listening for the last 7 days.
+ * Scrobbles are public — only a username + API key are required.
+ */
 export async function getWeeklyActivity(username) {
     if (!username?.trim()) {
         throw new Error('A Last.fm username is required')
