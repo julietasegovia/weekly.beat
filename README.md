@@ -48,7 +48,17 @@ For the design I wanted something similar to the Spotify UI but with a twist. I'
 
 - **Backend**: Render -> https://weekly-beat.onrender.com
 - **Frontend**: Vercel -> https://weekly-beat.vercel.app
-- **Bot**: Github Actions -> yet to be deployed
+- **Bot**: Github Actions
+
+
+## How it should work
+Hello reviewer! I figured that you may not have an active last.fm account as pretty much nobody does. This apps relies on last.fm tracking data for it to work so, empty last.fm account -> empty weekly.beat recommendations. 
+
+In order to not make your job harder, instead of sending you into a sidequest of using last.fm for a while before trying out my app, I've attatched a demo video of me using it on my last.fm account. I hope this is enough for you to review :] (`/readme-imgs/demo-video.mp4`)
+
+<video width="320" height="240" controls>
+  <source src="/readme-imgs/demo-video.mp4" type="video/mp4">
+</video>
 
 ## AI usage declearation
 I used Cursor Agent for most of the tag comparation system and ocassionaly to debug other features.
