@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getWeeklyActivity } from './lastfmActivity'
+import { readWeeklyFeedCache, writeWeeklyFeedCache } from './weeklyFeedCache'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8787'
 
@@ -7,10 +8,22 @@ const FALLBACK_TRACK = [
     { title: 'Girl', artist: "your backend aint connected", blurb: 'dumbass' },
 ]
 
+function applyFeed(feed, setters) {
+    setters.setTracks(feed.tracks)
+    setters.setArtistOfWeek(feed.artistOfWeek)
+    setters.setAlbumOfWeek(feed.albumOfWeek)
+}
+
 export function useWeeklyRecs(lastfmUsername) {
-    const [tracks, setTracks] = useState(null)
-    const [artistOfWeek, setArtistOfWeek] = useState(null)
-    const [albumOfWeek, setAlbumOfWeek] = useState(null)
+    const [tracks, setTracks] = useState(
+        () => readWeeklyFeedCache(lastfmUsername)?.tracks ?? null,
+    )
+    const [artistOfWeek, setArtistOfWeek] = useState(
+        () => readWeeklyFeedCache(lastfmUsername)?.artistOfWeek ?? null,
+    )
+    const [albumOfWeek, setAlbumOfWeek] = useState(
+        () => readWeeklyFeedCache(lastfmUsername)?.albumOfWeek ?? null,
+    )
     const [usingFallback, setUsingFallback] = useState(false)
     const [error, setError] = useState(null)
 
@@ -23,6 +36,20 @@ export function useWeeklyRecs(lastfmUsername) {
             setError(null)
             return
         }
+
+        const cached = readWeeklyFeedCache(lastfmUsername)
+        if (cached) {
+            applyFeed(cached, { setTracks, setArtistOfWeek, setAlbumOfWeek })
+            setUsingFallback(false)
+            setError(null)
+            return
+        }
+
+        setTracks(null)
+        setArtistOfWeek(null)
+        setAlbumOfWeek(null)
+        setUsingFallback(false)
+        setError(null)
 
         let cancelled = false
 
@@ -49,19 +76,17 @@ export function useWeeklyRecs(lastfmUsername) {
                 const data = await resp.json()
                 if (cancelled) return
 
-                setTracks(
-                    (data.tracks || []).map((t) => ({ ...t, imageUrl: t.bandcampImageUrl || null })),
-                )
-                setArtistOfWeek(
-                    data.artistOfWeek
+                const feed = {
+                    tracks: (data.tracks || []).map((t) => ({ ...t, imageUrl: t.bandcampImageUrl || null })),
+                    artistOfWeek: data.artistOfWeek
                         ? { ...data.artistOfWeek, imageUrl: data.artistOfWeek.representativeTrack?.bandcampImageUrl || null }
                         : null,
-                )
-                setAlbumOfWeek(
-                    data.albumOfWeek
+                    albumOfWeek: data.albumOfWeek
                         ? { ...data.albumOfWeek, imageUrl: data.albumOfWeek.bandcampImageUrl || null }
                         : null,
-                )
+                }
+                writeWeeklyFeedCache(lastfmUsername, feed)
+                applyFeed(feed, { setTracks, setArtistOfWeek, setAlbumOfWeek })
                 setUsingFallback(false)
                 setError(null)
             } catch (err) {
